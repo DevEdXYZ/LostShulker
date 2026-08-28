@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Lost Item Finder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --mc-bg: #1e1e1e;
+            --mc-panel: #c6c6c6;
+            --mc-panel-dark: #373737;
+            --mc-btn: #727272;
+            --mc-btn-hover: #8b8b8b;
+            --mc-btn-active: #555555;
+            --mc-border-light: #ffffff;
+            --mc-border-dark: #555555;
+            --mc-green: #55ff55;
+            --mc-yellow: #ffff55;
+            --mc-gold: #ffaa00;
+            --mc-link: #55ffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'VT323', monospace;
+            letter-spacing: 0.5px;
+        }
+
+        body {
+            background-color: #141414;
+            background-image: 
+                radial-gradient(#222 15%, transparent 16%), 
+                radial-gradient(#222 15%, transparent 16%);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+            color: #ffffff;
+            margin: 0;
+            padding: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .mc-window {
+            background: var(--mc-panel);
+            border: 4px solid #000;
+            box-shadow: 
+                inset 4px 4px 0 var(--mc-border-light), 
+                inset -4px -4px 0 var(--mc-border-dark),
+                0 12px 24px rgba(0,0,0,0.8);
+            padding: 24px;
+            width: 100%;
+            max-width: 600px;
+            color: #3f3f3f;
+            text-shadow: 2px 2px #e0e0e0;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 38px;
+            margin: 0 0 14px 0;
+            color: #2b2b2b;
+            text-shadow: 2px 2px #fff;
+            text-transform: uppercase;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            font-size: 20px;
+            color: #222;
+            margin-bottom: 4px;
+            font-weight: bold;
+        }
+
+        .helper-text {
+            font-size: 16px;
+            margin-top: 3px;
+            color: #333;
+            text-shadow: none;
+        }
+
+        .helper-text a {
+            color: #0000aa;
+            text-decoration: underline;
+            font-weight: bold;
+        }
+
+        .helper-text a:hover {
+            color: #0000ff;
+        }
+
+        .mc-input, select {
+            width: 100%;
+            padding: 8px 12px;
+            font-size: 20px;
+            background: #000000;
+            color: #ffffff;
+            border: 3px solid #373737;
+            border-top-color: #222;
+            border-left-color: #222;
+            border-bottom-color: #fff;
+            border-right-color: #fff;
+            outline: none;
+            text-shadow: 2px 2px #222;
+        }
+
+        .coord-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            margin: 10px 0;
+            user-select: none;
+            font-size: 18px;
+        }
+
+        .checkbox-container input {
+            width: 18px;
+            height: 18px;
+            accent-color: #388e3c;
+            cursor: pointer;
+        }
+
+        .mc-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            font-size: 24px;
+            color: #ffffff;
+            background: var(--mc-btn);
+            border: 3px solid #000000;
+            box-shadow: 
+                inset 3px 3px 0 #aaaaaa, 
+                inset -3px -3px 0 #373737;
+            text-shadow: 2px 2px #000000;
+            cursor: pointer;
+            margin-top: 14px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .mc-btn:hover { background: var(--mc-btn-hover); }
+        .mc-btn:active {
+            background: var(--mc-btn-active);
+            box-shadow: inset 3px 3px 0 #373737, inset -3px -3px 0 #aaaaaa;
+        }
+
+        /* Progress XP Bar */
+        .progress-section {
+            display: none;
+            margin-top: 16px;
+        }
+
+        .xp-bar-container {
+            width: 100%;
+            height: 18px;
+            background: #000;
+            border: 2px solid #373737;
+            border-bottom-color: #fff;
+            border-right-color: #fff;
+            overflow: hidden;
+        }
+
+        .xp-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to bottom, #80ff00, #55aa00);
+            box-shadow: 0 0 8px #55ff00;
+            transition: width 0.1s ease-out;
+        }
+
+        .status-text {
+            font-size: 18px;
+            color: #111;
+            text-shadow: 1px 1px #fff;
+            margin-top: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Output Cards */
+        .results-box {
+            margin-top: 16px;
+            background: #000000;
+            border: 3px solid #373737;
+            border-top-color: #222;
+            border-left-color: #222;
+            border-bottom-color: #fff;
+            border-right-color: #fff;
+            padding: 12px;
+            max-height: 230px;
+            overflow-y: auto;
+            color: #ffffff;
+            text-shadow: none;
+        }
+
+        .result-card {
+            background: #1e1e1e;
+            border: 2px solid #555;
+            padding: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .result-card:last-child { margin-bottom: 0; }
+        .result-info { font-size: 18px; line-height: 1.3; }
+
+        .copy-btn {
+            background: #388e3c;
+            color: #fff;
+            border: 2px solid #000;
+            padding: 6px 12px;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: inset 2px 2px 0 #66bb6a, inset -2px -2px 0 #1b5e20;
+        }
+
+        .copy-btn:hover { background: #43a047; }
+        .copy-btn:active { box-shadow: inset 2px 2px 0 #1b5e20, inset -2px -2px 0 #66bb6a; }
+
+        @media (max-width: 480px) {
+            .mc-window { padding: 14px; }
+            h1 { font-size: 30px; }
+            .coord-grid { grid-template-columns: 1fr; }
+            .result-card { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .copy-btn { width: 100%; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="mc-window">
+    <h1>⚔️ Item Locator ⚔️</h1>
+    
+    <div class="form-group">
+        <label for="itemId">Target Item ID:</label>
+        <input type="text" id="itemId" class="mc-input" value="minecraft:yellow_shulker_box" placeholder="e.g. minecraft:yellow_shulker_box">
+        <div class="helper-text">
+            Don't know the exact ID? <a href="https://minecraftitemids.com/" target="_blank" rel="noopener">Browse Minecraft Item IDs here</a>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="dimension">Dimension:</label>
+        <select id="dimension" class="mc-input">
+            <option value="overworld">Overworld</option>
+            <option value="nether">The Nether</option>
+            <option value="end">The End</option>
+        </select>
+    </div>
+
+    <div class="form-group" id="areaConfig">
+        <label>Search Area:</label>
+        <div class="coord-grid">
+            <div>
+                <label for="centerX" style="font-size:16px;">Center X:</label>
+                <input type="number" id="centerX" class="mc-input" value="0">
+            </div>
+            <div>
+                <label for="centerZ" style="font-size:16px;">Center Z:</label>
+                <input type="number" id="centerZ" class="mc-input" value="0">
+            </div>
+            <div>
+                <label for="radius" style="font-size:16px;">Radius (Blocks):</label>
+                <input type="number" id="radius" class="mc-input" value="3000" min="500" step="500">
+            </div>
+        </div>
+    </div>
+
+    <label class="checkbox-container">
+        <input type="checkbox" id="scanAll">
+        <span>Scan entire loaded world (Expands outward from Center X/Z)</span>
+    </label>
+
+    <label class="checkbox-container">
+        <input type="checkbox" id="searchContainers" checked>
+        <span>Search inside chests / containers (Uncheck for placed blocks)</span>
+    </label>
+
+    <button id="scanBtn" class="mc-btn">Select World Folder & Search</button>
+
+    <div class="progress-section" id="progressSection">
+        <div class="xp-bar-container">
+            <div class="xp-bar-fill" id="xpBar"></div>
+        </div>
+        <div class="status-text">
+            <span id="statusCurrent">Initializing scanner...</span>
+            <span id="statusCount">0 / 0</span>
+        </div>
+    </div>
+
+    <div class="results-box" id="results">Awaiting world folder...</div>
+</div>
+
+<script type="module">
+    import * as NBT from "https://cdn.jsdelivr.net/npm/nbtify@2.2.0/+esm";
+
+    const scanBtn = document.getElementById('scanBtn');
+    const resultsDiv = document.getElementById('results');
+    const progressSection = document.getElementById('progressSection');
+    const xpBar = document.getElementById('xpBar');
+    const statusCurrent = document.getElementById('statusCurrent');
+    const statusCount = document.getElementById('statusCount');
+    const scanAllCheckbox = document.getElementById('scanAll');
+    const areaConfig = document.getElementById('areaConfig');
+    const radiusInput = document.getElementById('radius');
+
+    // Toggle radius visibility when "Scan entire world" is checked
+    scanAllCheckbox.addEventListener('change', (e) => {
+        radiusInput.style.opacity = e.target.checked ? '0.4' : '1';
+        radiusInput.style.pointerEvents = e.target.checked ? 'none' : 'auto';
+    });
+
+    async function decompressChunk(compressedBytes, compressionType) {
+        if (compressionType === 3) return compressedBytes;
+        const format = compressionType === 1 ? 'gzip' : 'deflate';
+        const stream = new Blob([compressedBytes]).stream().pipeThrough(new DecompressionStream(format));
+        return await new Response(stream).arrayBuffer();
+    }
+
+    async function findRegionDir(rootDirHandle, dimension) {
+        const pathsToTry = {
+            overworld: [
+                ['dimensions', 'minecraft', 'overworld', 'region'],
+                ['region'],
+                []
+            ],
+            nether: [
+                ['dimensions', 'minecraft', 'the_nether', 'region'],
+                ['dimensions', 'minecraft', 'nether', 'region'],
+                ['DIM-1', 'region'],
+                ['region']
+            ],
+            end: [
+                ['dimensions', 'minecraft', 'the_end', 'region'],
+                ['dimensions', 'minecraft', 'end', 'region'],
+                ['DIM1', 'region'],
+                ['region']
+            ]
+        };
+
+        for (const path of pathsToTry[dimension]) {
+            try {
+                let current = rootDirHandle;
+                for (const segment of path) {
+                    current = await current.getDirectoryHandle(segment);
+                }
+                for await (const entry of current.values()) {
+                    if (entry.name.endsWith('.mca')) return current;
+                }
+            } catch (e) {}
+        }
+        return null;
+    }
+
+    // Clean Helper Function to add results to the UI
+    function addResultCard(title, x, y, z, isApproximate = false) {
+        const coordText = isApproximate 
+            ? `<span style="color:#ffaa00">Chunk: ~${x}, ~${y}, ~${z}</span>` 
+            : `X: ${x}, Y: ${y}, Z: ${z}`;
+            
+        const card = document.createElement('div');
+        card.className = 'result-card';
+        card.innerHTML = `
+            <div class="result-info">
+                <b style="color:var(--mc-gold)">${title}</b><br>
+                Coordinates: <span style="color:var(--mc-green)">${coordText}</span>
+            </div>
+            <button class="copy-btn" onclick="navigator.clipboard.writeText('/tp @s ${x} ${y} ${z}'); this.innerText='COPIED!'; setTimeout(()=>this.innerText='COPY /TP', 1500)">COPY /TP</button>
+        `;
+        resultsDiv.appendChild(card);
+        
+        // Auto-scroll to the newest result so they don't miss it
+        resultsDiv.scrollTop = resultsDiv.scrollHeight;
+    }
+
+    scanBtn.addEventListener('click', async () => {
+        const targetItem = document.getElementById('itemId').value.trim();
+        const dimension = document.getElementById('dimension').value;
+        const centerX = parseInt(document.getElementById('centerX').value) || 0;
+        const centerZ = parseInt(document.getElementById('centerZ').value) || 0;
+        const radius = parseInt(document.getElementById('radius').value) || 3000;
+        const scanAll = scanAllCheckbox.checked;
+        const searchContainers = document.getElementById('searchContainers').checked;
+
+        if (!targetItem) {
+            alert('Please specify an item ID!');
+            return;
+        }
+
+        try {
+            const rootDirHandle = await window.showDirectoryPicker({ mode: 'read' });
+            
+            progressSection.style.display = 'block';
+            resultsDiv.innerHTML = '<span style="color:#ffff55;">Scanning directory structure...</span>';
+            xpBar.style.width = '0%';
+
+            const regionHandle = await findRegionDir(rootDirHandle, dimension);
+            if (!regionHandle) {
+                resultsDiv.innerHTML = `<span style="color:#ff5555;">❌ Could not locate region files for dimension: ${dimension}</span>`;
+                progressSection.style.display = 'none';
+                return;
+            }
+
+            const minSearchX = centerX - radius;
+            const maxSearchX = centerX + radius;
+            const minSearchZ = centerZ - radius;
+            const maxSearchZ = centerZ + radius;
+
+            const regionFiles = [];
+            for await (const entry of regionHandle.values()) {
+                if (entry.kind === 'file' && entry.name.endsWith('.mca')) {
+                    const parts = entry.name.split('.');
+                    if (parts.length === 4) {
+                        const regX = parseInt(parts[1]);
+                        const regZ = parseInt(parts[2]);
+                        
+                        const minX = regX * 512;
+                        const maxX = minX + 511;
+                        const minZ = regZ * 512;
+                        const maxZ = minZ + 511;
+
+                        // Calculate distance from Center X/Z for sorting
+                        const regCenterX = regX * 512 + 256;
+                        const regCenterZ = regZ * 512 + 256;
+                        const distSq = Math.pow(regCenterX - centerX, 2) + Math.pow(regCenterZ - centerZ, 2);
+
+                        const fileData = { entry, distSq };
+
+                        if (scanAll) {
+                            regionFiles.push(fileData);
+                        } else {
+                            if (!(maxX < minSearchX || minX > maxSearchX || maxZ < minSearchZ || minZ > maxSearchZ)) {
+                                regionFiles.push(fileData);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // SORT FILES OUTWARD FROM CENTER COORDINATES
+            regionFiles.sort((a, b) => a.distSq - b.distSq);
+
+            if (regionFiles.length === 0) {
+                resultsDiv.innerHTML = '<span style="color:#ffaa00;">No region files found matching that area!</span>';
+                progressSection.style.display = 'none';
+                return;
+            }
+
+            // Set the active scanning UI
+            resultsDiv.innerHTML = `
+                <div style="color:#aaaaaa; font-size:18px; margin-bottom: 8px; text-align: center; border-bottom: 1px solid #333; padding-bottom: 8px;">
+                    <i>(Items will appear here immediately as they are found...)</i>
+                </div>
+            `;
+            
+            let foundCount = 0;
+
+            for (let fIdx = 0; fIdx < regionFiles.length; fIdx++) {
+                const fileEntry = regionFiles[fIdx].entry;
+                const pct = Math.round(((fIdx + 1) / regionFiles.length) * 100);
+                
+                xpBar.style.width = `${pct}%`;
+                statusCurrent.innerText = `Scanning: ${fileEntry.name}`;
+                statusCount.innerText = `${fIdx + 1} / ${regionFiles.length} files`;
+
+                const file = await fileEntry.getFile();
+                const arrayBuffer = await file.arrayBuffer();
+                const dataView = new DataView(arrayBuffer);
+
+                for (let i = 0; i < 1024; i++) {
+                    const offsetInfo = dataView.getUint32(i * 4);
+                    const offset = (offsetInfo >>> 8) * 4096;
+                    const sectors = offsetInfo & 0xFF;
+                    if (offset === 0 || sectors === 0) continue;
+
+                    try {
+                        const chunkLength = dataView.getUint32(offset);
+                        const compressionType = dataView.getUint8(offset + 4);
+                        const compressedData = arrayBuffer.slice(offset + 5, offset + 4 + chunkLength);
+
+                        const decompressed = await decompressChunk(compressedData, compressionType);
+                        const nbtData = await NBT.read(decompressed);
+                        const root = nbtData.data;
+
+                        // 1. Search Block Entities (Chests, placed Shulkers, Furnaces, etc.)
+                        const blockEntities = root.block_entities || (root.Level && root.Level.TileEntities);
+                        if (blockEntities) {
+                            for (const be of blockEntities) {
+                                if (searchContainers) {
+                                    // Search INSIDE containers
+                                    if (be.Items && Array.isArray(be.Items)) {
+                                        for (const item of be.Items) {
+                                            if (item.id === targetItem || item.id === `minecraft:${targetItem}`) {
+                                                foundCount++;
+                                                const containerType = (be.id || 'container').replace('minecraft:', '');
+                                                addResultCard(`📦 Inside ${containerType.toUpperCase()}`, be.x, be.y, be.z);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    // Check if the block entity ITSELF is the target
+                                    if (be.id === targetItem || be.id === `minecraft:${targetItem}`) {
+                                        foundCount++;
+                                        addResultCard(`🧱 Placed Block Entity`, be.x, be.y, be.z);
+                                    }
+                                }
+                            }
+                        }
+
+                        // 2. Search Chunk Palette for Standard Blocks (Diamond Ore, etc.) if not searching chests
+                        if (!searchContainers) {
+                            const sections = root.sections || (root.Level && root.Level.Sections);
+                            if (sections) {
+                                // Extract chunk coordinates
+                                const chunkX = root.xPos !== undefined ? root.xPos : (root.Level && root.Level.xPos);
+                                const chunkZ = root.zPos !== undefined ? root.zPos : (root.Level && root.Level.zPos);
+                                
+                                for (const sec of sections) {
+                                    const palette = sec.block_states?.palette || sec.Palette;
+                                    if (palette) {
+                                        for (const p of palette) {
+                                            if (p.Name === targetItem || p.Name === `minecraft:${targetItem}`) {
+                                                foundCount++;
+                                                const approxX = chunkX * 16;
+                                                const approxY = sec.Y * 16;
+                                                const approxZ = chunkZ * 16;
+                                                
+                                                // Passes 'true' at the end to signify chunk approximation
+                                                addResultCard(`⛏️ Standard Block`, approxX, approxY, approxZ, true);
+                                                break; // Found in this sub-chunk, move on to prevent spam
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                    } catch (e) {
+                        // Silently skip corrupted chunks
+                    }
+                }
+            }
+
+            statusCurrent.innerText = `Scan Complete!`;
+            if (foundCount === 0) {
+                resultsDiv.innerHTML = '<span style="color:#ff5555;">No matching items were found in the selected area.</span>';
+            }
+
+        } catch (error) {
+            if (error.name !== 'AbortError') {
+                resultsDiv.innerHTML = `<span style="color:#ff5555;">Error: ${error.message}</span>`;
+            }
+            progressSection.style.display = 'none';
+        }
+    });
+</script>
+</body>
+</html>
