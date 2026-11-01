@@ -833,12 +833,8 @@
                 return;
             }
 
-            // Set the active scanning UI
-            resultsDiv.innerHTML = `
-                <div style="color:#aaaaaa; font-size:13px; margin-bottom: 8px; text-align: center; border-bottom: 1px solid #333; padding-bottom: 8px;">
-                    <i>(Items will appear here immediately as they are found...)</i>
-                </div>
-            `;
+            // Set a plain-text scanning message; result cards are added as matches are found.
+            resultsDiv.textContent = 'Scanning region files. Matching items will appear here as they are found...';
 
             let foundCount = 0;
 
