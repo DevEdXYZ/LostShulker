@@ -249,6 +249,60 @@
         }
         .support-note a:hover { color: #a8e6ff; }
 
+        .folder-help {
+            margin: 12px 0 15px;
+            padding: 12px 14px;
+            background: rgba(24, 17, 11, 0.92);
+            border: 1px solid rgba(216,171,85,0.42);
+            border-radius: 6px;
+            color: #e8e2d5;
+            font-size: 17px;
+            line-height: 1.35;
+        }
+        .folder-help summary {
+            color: var(--gold-light);
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 700;
+            outline-offset: 4px;
+        }
+        .folder-help[open] summary { margin-bottom: 10px; }
+        .folder-help p { margin: 7px 0; }
+        .folder-help h3 {
+            margin: 10px 0 2px;
+            color: #f3d38c;
+            font-size: 17px;
+        }
+        .folder-help code {
+            color: #fff;
+            background: #17171a;
+            border: 1px solid #373238;
+            border-radius: 3px;
+            padding: 1px 5px;
+            overflow-wrap: anywhere;
+        }
+        .field-hint {
+            margin-top: 4px;
+            color: #d4caba;
+            font-size: 16px;
+            line-height: 1.25;
+        }
+        .scan-summary {
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            color: var(--gold-light);
+            border-bottom: 1px solid #45413a;
+            font-weight: 700;
+        }
+        .mc-btn:disabled { opacity: 0.55; cursor: wait; }
+        .mc-btn[hidden] { display: none; }
+        .mc-btn.cancel-btn {
+            margin-top: 10px;
+            background: linear-gradient(180deg, #74413a, #512a25);
+            box-shadow: 0 3px 0 #351a17, 0 6px 12px rgba(0,0,0,0.35);
+        }
+        .mc-btn.cancel-btn:hover { background: linear-gradient(180deg, #854b43, #60312b); }
+
         .mc-input, select {
             width: 100%;
             padding: 8px 11px;
@@ -465,7 +519,8 @@
                 <label for="itemId">Target Item ID:</label>
                 <input type="text" id="itemId" class="mc-input" value="minecraft:yellow_shulker_box" placeholder="e.g. minecraft:yellow_shulker_box">
                 <div class="helper-text">
-                    Don't know the exact ID? <a href="https://minecraftitemids.com/" target="_blank" rel="noopener">Browse Minecraft Item IDs here</a>
+                    Don't know the exact ID? <a href="https://minecraftitemids.com/" target="_blank" rel="noopener noreferrer">Browse Minecraft Item IDs here</a>
+                    <div class="field-hint">You can enter <code>yellow_shulker_box</code> or <code>minecraft:yellow_shulker_box</code>. If you leave out the namespace, <code>minecraft:</code> is added automatically.</div>
                 </div>
             </div>
 
@@ -476,6 +531,7 @@
                     <option value="nether">The Nether</option>
                     <option value="end">The End</option>
                 </select>
+                <div class="field-hint">Choose the dimension where you think the item was lost. Each dimension has separate region files.</div>
             </div>
 
             <div class="form-group" id="areaConfig">
@@ -494,37 +550,55 @@
                         <input type="number" id="radius" class="mc-input" value="3000" min="500" step="500">
                     </div>
                 </div>
+                <div class="field-hint">Set the centre of the search area. You can read your current X and Z coordinates on Minecraft's F3 debug screen.</div>
             </div>
 
             <label class="checkbox-container">
                 <input type="checkbox" id="scanAll">
-                <span>Scan entire loaded world (Expands outward from Center X/Z)</span>
+                <span>Scan every saved region file in this world (starts near the centre and works outward)</span>
             </label>
 
             <label class="checkbox-container">
                 <input type="checkbox" id="searchContainers" checked>
-                <span>Search inside chests / containers (Uncheck for placed blocks)</span>
+                <span>Search inside chests / containers (uncheck to find placed blocks)</span>
             </label>
+            <div class="field-hint">Checked: look inside container inventories. Unchecked: look for the item as a placed block.</div>
 
             <section class="privacy-note" aria-label="Privacy and local processing information">
-                <strong>🔒 Your world stays yours — private &amp; local</strong>
-                <p>LostShulker scans your Minecraft world directly in your browser. Your world folder is opened with <b>read-only</b> access, and all searching happens on your own device. Your files and scan results are never uploaded to LostShulker or sent to a server.</p>
-                <p class="offline-detail">You can disconnect from the internet once this page has finished loading and use the scanner offline. The first page load fetches the scanning library (and may load web fonts), so an internet connection is needed to load those resources initially.</p>
+                <strong>🔒 Your world stays on your device</strong>
+                <p>LostShulker reads only the Minecraft world folder you choose, using your browser's <b>read-only</b> folder permission. The search runs locally in this tab. LostShulker does not upload your save files or scan results to a server.</p>
+                <p class="offline-detail">When the page loads, your browser downloads the site and its NBT scanning library from jsDelivr (and may fetch web fonts from Google). Once everything has finished loading, you can disconnect from the internet and scan in this tab. Refreshing or reopening the page offline may not work.</p>
             </section>
 
-            <button id="scanBtn" class="mc-btn">Select World Folder &amp; Search</button>
+            <details class="folder-help">
+                <summary>Not sure where your Minecraft world is? Show me</summary>
+                <p>When the folder picker opens, find the <b>saves</b> folder for your Minecraft installation. Then open the folder for the world you want to search.</p>
+                <p><b>Important:</b> Select the individual world folder — the one that contains <code>level.dat</code> and a <code>region</code> folder. Do not select the whole <code>.minecraft</code> folder or the <code>saves</code> folder itself.</p>
+                <h3>Windows (Java Edition)</h3>
+                <p>Press <b>Windows + R</b>, paste <code>%appdata%\.minecraft\saves</code>, and press Enter. Open your world folder there.</p>
+                <h3>macOS (Java Edition)</h3>
+                <p>In Finder, press <b>Shift + Command + G</b>, enter <code>~/Library/Application Support/minecraft/saves</code>, and press Return. Open your world folder.</p>
+                <h3>Linux (Java Edition)</h3>
+                <p>Open <code>~/.minecraft/saves</code>, then open your world folder.</p>
+                <h3>Using a launcher or custom game directory?</h3>
+                <p>For Prism Launcher, CurseForge, Modrinth or another launcher, open that instance's game directory, find its <code>saves</code> folder, and choose the individual world folder inside it.</p>
+                <p>Your browser will ask you to approve access to the folder you choose. LostShulker requests read-only access; you can cancel the picker at any time.</p>
+            </details>
+            <button id="scanBtn" class="mc-btn" type="button">Choose World Folder &amp; Start Search</button>
+            <button id="cancelBtn" class="mc-btn cancel-btn" type="button" hidden>Cancel Scan</button>
+            <div class="field-hint">Choose the folder for one world, not the parent <code>saves</code> folder. You can expand the guide above if you need help finding it.</div>
 
             <div class="progress-section" id="progressSection">
                 <div class="xp-bar-container">
                     <div class="xp-bar-fill" id="xpBar"></div>
                 </div>
-                <div class="status-text">
+                <div class="status-text" role="status" aria-live="polite">
                     <span id="statusCurrent">Initializing scanner...</span>
                     <span id="statusCount">0 / 0</span>
                 </div>
             </div>
 
-            <div class="results-box" id="results">Awaiting world folder...</div>
+            <div class="results-box" id="results" role="status" aria-live="polite">Choose a world folder to begin.</div>
         </div>
     </div>
 
@@ -545,6 +619,7 @@
     import * as NBT from "https://cdn.jsdelivr.net/npm/nbtify@2.2.0/+esm";
 
     const scanBtn = document.getElementById('scanBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
     const resultsDiv = document.getElementById('results');
     const progressSection = document.getElementById('progressSection');
     const xpBar = document.getElementById('xpBar');
@@ -553,11 +628,19 @@
     const scanAllCheckbox = document.getElementById('scanAll');
     const areaConfig = document.getElementById('areaConfig');
     const radiusInput = document.getElementById('radius');
+    let cancelRequested = false;
+
+    cancelBtn.addEventListener('click', () => {
+        cancelRequested = true;
+        cancelBtn.disabled = true;
+        statusCurrent.textContent = 'Stopping scan...';
+    });
 
     // Toggle radius visibility when "Scan entire world" is checked
     scanAllCheckbox.addEventListener('change', (e) => {
         radiusInput.style.opacity = e.target.checked ? '0.4' : '1';
         radiusInput.style.pointerEvents = e.target.checked ? 'none' : 'auto';
+        radiusInput.disabled = e.target.checked;
     });
 
     async function decompressChunk(compressedBytes, compressionType) {
@@ -602,51 +685,94 @@
         return null;
     }
 
-    // Clean Helper Function to add results to the UI
-    function addResultCard(title, x, y, z, isApproximate = false) {
-        const coordText = isApproximate
-            ? `<span style="color:#ffaa00">Chunk: ~${x}, ~${y}, ~${z}</span>`
-            : `X: ${x}, Y: ${y}, Z: ${z}`;
+    const matchesTarget = (id) => {
+        if (typeof id !== 'string') return false;
+        return id === targetItem || (id.includes(':') ? false : `minecraft:${id}` === targetItem);
+    };
 
+    // Render NBT-derived values as text, never as HTML.
+    function addResultCard(title, x, y, z, isApproximate = false) {
         const card = document.createElement('div');
         card.className = 'result-card';
-        card.innerHTML = `
-            <div class="result-info">
-                <b style="color:#e0b25a">${title}</b><br>
-                Coordinates: <span style="color:#7ed957">${coordText}</span>
-            </div>
-            <button class="copy-btn" onclick="navigator.clipboard.writeText('/tp @s ${x} ${y} ${z}'); this.innerText='COPIED!'; setTimeout(()=>this.innerText='COPY /TP', 1500)">COPY /TP</button>
-        `;
-        resultsDiv.appendChild(card);
 
-        // Auto-scroll to the newest result so they don't miss it
+        const info = document.createElement('div');
+        info.className = 'result-info';
+
+        const heading = document.createElement('b');
+        heading.style.color = '#e0b25a';
+        heading.textContent = title;
+
+        const coordinates = document.createElement('div');
+        coordinates.style.color = '#7ed957';
+        coordinates.textContent = isApproximate
+            ? `Chunk: ~${x}, ~${y}, ~${z}`
+            : `X: ${x}, Y: ${y}, Z: ${z}`;
+
+        info.append(heading, document.createElement('br'), document.createTextNode('Coordinates: '), coordinates);
+
+        const copyBtn = document.createElement('button');
+        copyBtn.type = 'button';
+        copyBtn.className = 'copy-btn';
+        copyBtn.textContent = 'COPY /TP';
+        const command = `/tp @s ${x} ${y} ${z}`;
+        copyBtn.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(command);
+                copyBtn.textContent = 'COPIED!';
+                window.setTimeout(() => { copyBtn.textContent = 'COPY /TP'; }, 1500);
+            } catch (error) {
+                copyBtn.textContent = 'COPY UNAVAILABLE';
+            }
+        });
+
+        card.append(info, copyBtn);
+        resultsDiv.appendChild(card);
         resultsDiv.scrollTop = resultsDiv.scrollHeight;
     }
 
     scanBtn.addEventListener('click', async () => {
-        const targetItem = document.getElementById('itemId').value.trim();
+        const rawTargetItem = document.getElementById('itemId').value.trim().toLowerCase();
+        const targetItem = rawTargetItem.includes(':') ? rawTargetItem : `minecraft:${rawTargetItem}`;
         const dimension = document.getElementById('dimension').value;
-        const centerX = parseInt(document.getElementById('centerX').value) || 0;
-        const centerZ = parseInt(document.getElementById('centerZ').value) || 0;
-        const radius = parseInt(document.getElementById('radius').value) || 3000;
+        const centerX = Number.parseInt(document.getElementById('centerX').value, 10) || 0;
+        const centerZ = Number.parseInt(document.getElementById('centerZ').value, 10) || 0;
+        const radius = Number.parseInt(document.getElementById('radius').value, 10);
         const scanAll = scanAllCheckbox.checked;
         const searchContainers = document.getElementById('searchContainers').checked;
 
-        if (!targetItem) {
-            alert('Please specify an item ID!');
+        if (!rawTargetItem || !/^[a-z0-9_.-]+:[a-z0-9_./-]+$/.test(targetItem)) {
+            resultsDiv.textContent = 'Enter a valid item ID, such as minecraft:yellow_shulker_box.';
+            document.getElementById('itemId').focus();
             return;
         }
 
+        if (!scanAll && (!Number.isFinite(radius) || radius < 500)) {
+            resultsDiv.textContent = 'Search radius must be at least 500 blocks.';
+            radiusInput.focus();
+            return;
+        }
+
+        if (typeof window.showDirectoryPicker !== 'function') {
+            resultsDiv.textContent = 'This browser does not support direct folder selection. Please open LostShulker in a recent desktop version of Chrome or Edge to choose a world folder.';
+            return;
+        }
+
+        scanBtn.disabled = true;
+        cancelRequested = false;
+
         try {
             const rootDirHandle = await window.showDirectoryPicker({ mode: 'read' });
+            cancelBtn.hidden = false;
 
             progressSection.style.display = 'block';
-            resultsDiv.innerHTML = '<span style="color:#ffff55;">Scanning directory structure...</span>';
+            resultsDiv.textContent = 'Checking the selected folder for Minecraft region files...';
             xpBar.style.width = '0%';
+            statusCurrent.textContent = 'Preparing scan...';
+            statusCount.textContent = '0 / 0 files';
 
             const regionHandle = await findRegionDir(rootDirHandle, dimension);
             if (!regionHandle) {
-                resultsDiv.innerHTML = `<span style="color:#ff5555;">❌ Could not locate region files for dimension: ${dimension}</span>`;
+                resultsDiv.textContent = `Couldn't find region files for the ${dimension} in that folder. Open the individual world folder (the one containing level.dat and region), then try again.`;
                 progressSection.style.display = 'none';
                 return;
             }
@@ -691,7 +817,9 @@
             regionFiles.sort((a, b) => a.distSq - b.distSq);
 
             if (regionFiles.length === 0) {
-                resultsDiv.innerHTML = '<span style="color:#ffaa00;">No region files found matching that area!</span>';
+                resultsDiv.textContent = scanAll
+                    ? 'No region files were found in this world folder.'
+                    : 'No region files were found in that search area. Try a larger radius or scan the entire world.';
                 progressSection.style.display = 'none';
                 return;
             }
@@ -706,6 +834,7 @@
             let foundCount = 0;
 
             for (let fIdx = 0; fIdx < regionFiles.length; fIdx++) {
+                if (cancelRequested) break;
                 const fileEntry = regionFiles[fIdx].entry;
                 const pct = Math.round(((fIdx + 1) / regionFiles.length) * 100);
 
@@ -718,6 +847,7 @@
                 const dataView = new DataView(arrayBuffer);
 
                 for (let i = 0; i < 1024; i++) {
+                    if (cancelRequested) break;
                     const offsetInfo = dataView.getUint32(i * 4);
                     const offset = (offsetInfo >>> 8) * 4096;
                     const sectors = offsetInfo & 0xFF;
@@ -740,7 +870,7 @@
                                     // Search INSIDE containers
                                     if (be.Items && Array.isArray(be.Items)) {
                                         for (const item of be.Items) {
-                                            if (item.id === targetItem || item.id === `minecraft:${targetItem}`) {
+                                            if (matchesTarget(item.id)) {
                                                 foundCount++;
                                                 const containerType = (be.id || 'container').replace('minecraft:', '');
                                                 addResultCard(`📦 Inside ${containerType.toUpperCase()}`, be.x, be.y, be.z);
@@ -750,7 +880,7 @@
                                     }
                                 } else {
                                     // Check if the block entity ITSELF is the target
-                                    if (be.id === targetItem || be.id === `minecraft:${targetItem}`) {
+                                    if (matchesTarget(be.id)) {
                                         foundCount++;
                                         addResultCard(`🧱 Placed Block Entity`, be.x, be.y, be.z);
                                     }
@@ -770,7 +900,7 @@
                                     const palette = sec.block_states?.palette || sec.Palette;
                                     if (palette) {
                                         for (const p of palette) {
-                                            if (p.Name === targetItem || p.Name === `minecraft:${targetItem}`) {
+                                            if (matchesTarget(p.Name)) {
                                                 foundCount++;
                                                 const approxX = chunkX * 16;
                                                 const approxY = sec.Y * 16;
@@ -792,16 +922,35 @@
                 }
             }
 
-            statusCurrent.innerText = `Scan Complete!`;
-            if (foundCount === 0) {
-                resultsDiv.innerHTML = '<span style="color:#ff5555;">No matching items were found in the selected area.</span>';
+            if (cancelRequested) {
+                statusCurrent.textContent = 'Scan cancelled';
+                const cancelledNote = document.createElement('div');
+                cancelledNote.textContent = `Scan stopped. ${foundCount} matching result(s) found so far.`;
+                resultsDiv.appendChild(cancelledNote);
+            } else {
+                statusCurrent.textContent = 'Scan complete!';
+                statusCount.textContent = `${foundCount} match(es)`;
+                if (foundCount === 0) {
+                    resultsDiv.textContent = `No matching ${targetItem} items were found in the selected area. Try a larger radius or scan the entire world.`;
+                } else {
+                    const summary = document.createElement('div');
+                    summary.className = 'scan-summary';
+                    summary.textContent = `${foundCount} matching result(s) found across ${regionFiles.length} region file(s).`;
+                    resultsDiv.prepend(summary);
+                }
             }
 
         } catch (error) {
-            if (error.name !== 'AbortError') {
-                resultsDiv.innerHTML = `<span style="color:#ff5555;">Error: ${error.message}</span>`;
+            if (error.name === 'AbortError') {
+                resultsDiv.textContent = 'Folder selection cancelled. No world files were changed.';
+            } else {
+                resultsDiv.textContent = `Could not complete the scan: ${error.message}`;
             }
             progressSection.style.display = 'none';
+        } finally {
+            scanBtn.disabled = false;
+            cancelBtn.hidden = true;
+            cancelBtn.disabled = false;
         }
     });
 </script>
