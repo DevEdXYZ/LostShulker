@@ -555,7 +555,7 @@
 
             <label class="checkbox-container">
                 <input type="checkbox" id="scanAll">
-                <span>Scan every saved region file in this world (starts near the centre and works outward)</span>
+                <span>Scan all saved region files in this dimension (starts near the centre and works outward)</span>
             </label>
 
             <label class="checkbox-container">
@@ -582,7 +582,7 @@
                 <p>Open <code>~/.minecraft/saves</code>, then open your world folder.</p>
                 <h3>Using a launcher or custom game directory?</h3>
                 <p>For Prism Launcher, CurseForge, Modrinth or another launcher, open that instance's game directory, find its <code>saves</code> folder, and choose the individual world folder inside it.</p>
-                <p>Your browser will ask you to approve access to the folder you choose. LostShulker requests read-only access; you can cancel the picker at any time.</p>
+                <p>Your browser will ask you to approve access to the folder you choose. LostShulker requests read-only access. The browser may remember the last folder location used for LostShulker to make your next search quicker; it does not remember or upload your world files.</p>
             </details>
             <button id="scanBtn" class="mc-btn" type="button">Choose World Folder &amp; Start Search</button>
             <button id="cancelBtn" class="mc-btn cancel-btn" type="button" hidden>Cancel Scan</button>
@@ -685,7 +685,7 @@
         return null;
     }
 
-    const matchesTarget = (id) => {
+    const matchesTarget = (id, targetItem) => {
         if (typeof id !== 'string') return false;
         return id === targetItem || (id.includes(':') ? false : `minecraft:${id}` === targetItem);
     };
@@ -752,8 +752,8 @@
             return;
         }
 
-        if (typeof window.showDirectoryPicker !== 'function') {
-            resultsDiv.textContent = 'This browser does not support direct folder selection. Please open LostShulker in a recent desktop version of Chrome or Edge to choose a world folder.';
+        if (!window.isSecureContext || typeof window.showDirectoryPicker !== 'function') {
+            resultsDiv.textContent = 'Folder selection is not available here. Open LostShulker over HTTPS in a recent desktop browser that supports choosing folders (for example, Chrome or Edge).';
             return;
         }
 
@@ -761,11 +761,19 @@
         cancelRequested = false;
 
         try {
-            const rootDirHandle = await window.showDirectoryPicker({ mode: 'read' });
+            const rootDirHandle = await window.showDirectoryPicker({ mode: 'read', id: 'lostshulker-world' });
             cancelBtn.hidden = false;
 
             progressSection.style.display = 'block';
-            resultsDiv.textContent = 'Checking the selected folder for Minecraft region files...';
+            resultsDiv.textContent = 'Checking the selected folder for Minecraft world files...';
+
+            try {
+                await rootDirHandle.getFileHandle('level.dat');
+            } catch (error) {
+                resultsDiv.textContent = 'That folder does not look like a Minecraft world. Choose the individual world folder containing level.dat and the region folder — not the parent saves folder.';
+                progressSection.style.display = 'none';
+                return;
+            }
             xpBar.style.width = '0%';
             statusCurrent.textContent = 'Preparing scan...';
             statusCount.textContent = '0 / 0 files';
@@ -870,7 +878,7 @@
                                     // Search INSIDE containers
                                     if (be.Items && Array.isArray(be.Items)) {
                                         for (const item of be.Items) {
-                                            if (matchesTarget(item.id)) {
+                                            if (matchesTarget(item.id, targetItem)) {
                                                 foundCount++;
                                                 const containerType = (be.id || 'container').replace('minecraft:', '');
                                                 addResultCard(`📦 Inside ${containerType.toUpperCase()}`, be.x, be.y, be.z);
@@ -880,7 +888,7 @@
                                     }
                                 } else {
                                     // Check if the block entity ITSELF is the target
-                                    if (matchesTarget(be.id)) {
+                                    if (matchesTarget(be.id, targetItem)) {
                                         foundCount++;
                                         addResultCard(`🧱 Placed Block Entity`, be.x, be.y, be.z);
                                     }
@@ -900,7 +908,7 @@
                                     const palette = sec.block_states?.palette || sec.Palette;
                                     if (palette) {
                                         for (const p of palette) {
-                                            if (matchesTarget(p.Name)) {
+                                            if (matchesTarget(p.Name, targetItem)) {
                                                 foundCount++;
                                                 const approxX = chunkX * 16;
                                                 const approxY = sec.Y * 16;
